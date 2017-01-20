@@ -26,7 +26,7 @@ const int         SwerveDrive::CONTROL_TYPE_TURNING_DRIVE = 3;
 const std::string SwerveDrive::CONTROL_TYPE_TURNING_DRIVE_KEY = "Turning Drive";
 
 bool isTwisting = false;
-float setAngle;
+float turnAngle = 0;
 
 SwerveDrive::SwerveDrive(SwerveModule &FR, SwerveModule &FL, SwerveModule &BL, SwerveModule &BR, float Length, float Width)
 : a_FrontRight(FR),
@@ -242,39 +242,43 @@ void SwerveDrive::Update(Joystick &stick, float gyroValue)
 			brSpeed = setSpeed;
 		}
 	} else if(controlType == CONTROL_TYPE_TURNING_DRIVE_KEY) {
-		setAngle = 0;
-		if(gyroValue < setAngle - 3) {
-					if(diff > 10) {
-						frSpeed = -0.3;
-						flSpeed = 0.3;
-						blSpeed = 0.3;
-						brSpeed = -0.3;
+		flAngle = 0;
+		frAngle = 0;
+		blAngle = 0;
+		brAngle = 0;
 
-					} else {
-						frSpeed = -0.2;
-						flSpeed = 0.2;
-						blSpeed = 0.2;
-						brSpeed = -0.2;
-					}
-				} else if(gyroValue > setAngle + 3) {
-					if(diff > 10) {
-						frSpeed = 0.3;
-						flSpeed = -0.3;
-						blSpeed = -0.3;
-						brSpeed = 0.3;
-					} else {
-						frSpeed = 0.2;
-						flSpeed = -0.2;
-						blSpeed = -0.2;
-						brSpeed = 0.2;
-					}
-				} else {
-					frSpeed = 0;
-					flSpeed = 0;
-					blSpeed = 0;
-					brSpeed = 0;
-					isTwisting = false;
-				}
+		if(gyroValue < turnAngle - 3) {
+			if(diff > 10) {
+				frSpeed = -0.3;
+				flSpeed = 0.3;
+				blSpeed = 0.3;
+				brSpeed = -0.3;
+
+			} else {
+				frSpeed = -0.2;
+				flSpeed = 0.2;
+				blSpeed = 0.2;
+				brSpeed = -0.2;
+			}
+		} else if(gyroValue > turnAngle + 3) {
+			if(diff > 10) {
+				frSpeed = 0.3;
+				flSpeed = -0.3;
+				blSpeed = -0.3;
+				brSpeed = 0.3;
+			} else {
+				frSpeed = 0.2;
+				flSpeed = -0.2;
+				blSpeed = -0.2;
+				brSpeed = 0.2;
+			}
+		} else {
+			frSpeed = 0;
+			flSpeed = 0;
+			blSpeed = 0;
+			brSpeed = 0;
+			DisableTwist();
+		}
 	} else {
 		float setAngle = atan2(yInput, xInput) * 180 / M_PI;
 				setAngle -= 90;
@@ -311,16 +315,16 @@ void SwerveDrive::Update(Joystick &stick, float gyroValue)
 
 void SwerveDrive::SetTwistingMode()
 {
-	isTwisting = 1;
+	isTwisting = true;
 }
 
 void SwerveDrive::DisableTwist()
 {
-	isTwisting = 0;
+	isTwisting = false;
 }
 
 void SwerveDrive::SetTwistingRelAngle(float gyroAngle, float angle)
 {
-	setAngle = gyroAngle + angle;
+	turnAngle = gyroAngle + angle;
 }
 
