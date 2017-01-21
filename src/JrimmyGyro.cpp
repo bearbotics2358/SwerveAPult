@@ -5,7 +5,8 @@
 
 #include <Prefs.h>
 #include "JrimmyGyro.h"
-#include <I2C.h>
+// #include <I2C.h>
+#include <WPILib.h>
 #include <LiveWindow/LiveWindow.h>
 
 const uint8_t JrimmyGyro::kPowerMgmRegister;
@@ -18,17 +19,18 @@ constexpr double JrimmyGyro::kGsPerLSB;
  *
  * @param port The I2C port the gyro is attached to
  */
-JrimmyGyro::JrimmyGyro(Port port):
-		I2C(port, 0x68)
+JrimmyGyro::JrimmyGyro(I2C::Port port)
+		:m_I2C(port, (0x68 >> 1))
 {
+	uint8_t Buff[256];
 	lastUpdate = 0;
-	Init();
+	// Init();
 	//m_i2c = new I2C((I2C::Port)port, kAddress);
-	// int ret = Read(0, 1, Buff);
-	// printf("Jake Buff: %2.2X\n", Buff[0] & 0x00ff);
+	int ret = m_I2C.Read(0, 1, Buff);
+	printf("Jake Buff: %2.2X\n", Buff[0] & 0x00ff);
 
 	// Turn on the measurements
-	// Write(kPowerCtlRegister, kPowerCtl_Measure);
+	m_I2C.Write(kPowerMgmRegister, kPowerCtl_Measure);
 	// Specify the data format to read
 	//SetRange(range);
 
@@ -51,7 +53,7 @@ void JrimmyGyro::WaitForValues()
 	double now;
 
 	do {
-		result = Read(kIntStatus, 1, &stat);
+		result = m_I2C.Read(kIntStatus, 1, &stat);
 		now = Timer::GetFPGATimestamp();
 	} while(!(stat & 1) && !result && ((now - start) < 0.500));
 	// TODO: report errors/timeouts
@@ -60,12 +62,19 @@ void JrimmyGyro::WaitForValues()
 void JrimmyGyro::Init()
 {
 	lastUpdate = 0;
-	Write(kDLPFRegister, 0x1B);
-	Write(kSampleRateDivider, 9);
-	Write(kPowerMgmRegister, 1);
-	Write(kIntCfg, 1);
+	m_I2C.Write(kDLPFRegister, 0x1B);
+	m_I2C.Write(kSampleRateDivider, 9);
+	m_I2C.Write(kPowerMgmRegister, 1);
+	m_I2C.Write(kIntCfg, 1);
 
 	Cal();
+
+	// did registers set properly?
+	printf("Reg 0: 0x%2.2x\n", GetRegByte(0));
+	printf("kDLPFRegister(0x%2.2x): 0x%2.2x = 0x1B?\n", kDLPFRegister, (unsigned int)GetRegByte(kDLPFRegister));
+	printf("kSampleRateDivider(0x%2.2x): %d = 9?\n",	kSampleRateDivider, (int)GetRegByte(kSampleRateDivider));
+	printf("kPowerMgmRegister(0x%2.2x): %d = 1?\n", kPowerMgmRegister, (int)GetRegByte(kPowerMgmRegister));
+	printf("kIntCfg(0x%2.2x): %d = 1?\n", kIntCfg, (int)GetRegByte(kIntCfg));
 }
 
 void JrimmyGyro::Cal()
@@ -111,7 +120,7 @@ void JrimmyGyro::Cal()
 uint8_t JrimmyGyro::GetReg0()
 {
 	uint8_t id;
-	Read(0, 1, &id);
+	m_I2C.Read(0, 1, &id);
 	// SmartDashboard::PutNumber("Gyro ID", id);
 
 	return id;
@@ -122,9 +131,17 @@ int16_t JrimmyGyro::GetReg(uint8_t regNum)
 	uint16_t ret;
 	uint8_t buff[2];
 
-	Read(regNum, 2, buff);
+	m_I2C.Read(regNum, 2, buff);
 	ret = (buff[0] << 8) | buff[1];
 	return (int16_t)ret;
+}
+
+int8_t JrimmyGyro::GetRegByte(uint8_t regNum)
+{
+	uint8_t buff[2];
+
+	m_I2C.Read(regNum, 1, buff);
+	return buff[0];
 }
 
 void JrimmyGyro::Update()

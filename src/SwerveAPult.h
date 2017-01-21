@@ -17,6 +17,7 @@
 #include "Shooter.h"
 #include "SwerveModule.h"
 #include "SwerveDrive.h"
+#include "LightRingController.h"
 #include "SmartDashboard/SmartDashboard.h"
 #include "SmartDashboard/SendableChooser.h"
 
@@ -57,6 +58,8 @@ private:
 	Roller a_Roller;
 
 	JrimmyGyro a_Gyro;
+
+	LightRingController a_LRC;
 
 	double tState;
 	int shooterCurrent;

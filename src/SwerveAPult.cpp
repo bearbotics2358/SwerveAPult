@@ -18,7 +18,8 @@ SwerveAPult::SwerveAPult(void):
 		a_Collector(COLLECTOR, COLLECTOR_ENCODER_PORT, 0, 0), // See above
 		a_Shooter(SHOOTER, SHOOTER_ENCODER_PORT),
 		a_Roller(ROLLER, ROLLER_SWITCH_PORT),
-		a_Gyro(I2C::kMXP) // Didn't work because we used smartdashboard in the constructor- wait to use it until after RobotInit()
+		a_Gyro(I2C::kMXP),
+		a_LRC()
 {
 	tState = 0;
 	shooterStart = -99.0;
@@ -29,6 +30,7 @@ SwerveAPult::SwerveAPult(void):
 		// a_BackRight.InvertDriveMotor();
 		a_FrontRight.InvertDriveMotor();
 		// a_FrontLeft.InvertDriveMotor();
+		printf("The values is %b", a_LRC.SetFlash(0,false));
 }
 
 void SwerveAPult::RobotInit()
@@ -44,6 +46,9 @@ void SwerveAPult::DisabledInit()
 
 void SwerveAPult::DisabledPeriodic()
 {
+	a_Gyro.Update();
+
+	SmartDashboard::PutNumber("Gyro, yum", a_Gyro.GetAngle());
 
 	SmartDashboard::PutNumber("Front Right Speed", a_FrontRight.GetSpeed());
 	SmartDashboard::PutNumber("Front Left Speed", a_FrontLeft.GetSpeed());
