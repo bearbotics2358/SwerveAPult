@@ -30,7 +30,6 @@ SwerveAPult::SwerveAPult(void):
 		// a_BackRight.InvertDriveMotor();
 		a_FrontRight.InvertDriveMotor();
 		// a_FrontLeft.InvertDriveMotor();
-		printf("The values is %b", a_LRC.SetFlash(0,false));
 }
 
 void SwerveAPult::RobotInit()
@@ -47,7 +46,7 @@ void SwerveAPult::DisabledInit()
 void SwerveAPult::DisabledPeriodic()
 {
 	a_Gyro.Update();
-
+	a_LRC.SetColor(0,0,255,0);
 	SmartDashboard::PutNumber("Gyro, yum", a_Gyro.GetAngle());
 
 	SmartDashboard::PutNumber("Front Right Speed", a_FrontRight.GetSpeed());
@@ -90,7 +89,7 @@ void SwerveAPult::TeleopInit()
 
 void SwerveAPult::TeleopPeriodic()
 {
-
+	a_LRC.SetColor(0,0,255,0);
 	a_Gyro.Update();
 
 	a_Drive.Update(a_Joystick, a_Gyro.GetAngle());
